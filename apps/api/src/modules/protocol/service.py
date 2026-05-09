@@ -54,6 +54,44 @@ def build_validation_error_detail(protocol: Protocol) -> dict[str, object]:
     }
 
 
+def build_full_validation_error_detail(protocol: Protocol) -> dict[str, object]:
+    manifest = load_manifest(protocol.module_id)
+    issues: list[str] = []
+    field_errors: dict[str, list[str]] = {}
+
+    for step_key in manifest["steps"]:
+        if step_key == "review":
+            continue
+
+        validation = validate_step(step_key, protocol.payload or {}, manifest)
+        if validation.is_complete:
+            continue
+
+        step_definition = get_step_definition(step_key, manifest)
+        step_title = step_definition.title if step_definition else step_key
+        field_labels = {
+            field.key: field.label for field in step_definition.fields
+        } if step_definition else {}
+
+        for field_key in validation.missing_fields:
+            label = field_labels.get(field_key, field_key)
+            field_errors[field_key] = ["Kohustuslik vaartus on puudu."]
+            issues.append(f"{step_title} - {label}: kohustuslik vaartus on puudu.")
+
+        for field_key, messages in validation.validation_errors.items():
+            label = field_labels.get(field_key, field_key)
+            field_errors[field_key] = messages
+            issues.append(f"{step_title} - {label}: {' '.join(messages)}")
+
+    if not issues:
+        issues.append("Protokolli kohustuslikud andmed on puudulikud.")
+
+    return {
+        "message": " | ".join(issues),
+        "field_errors": field_errors,
+    }
+
+
 def write_audit_log(
     db: Session,
     *,
@@ -173,6 +211,28 @@ def advance_protocol_step(db: Session, protocol_id: str) -> Protocol | None:
             action="protocol.step_advanced",
             actor_id=protocol.user_id,
             details={"from_step": previous_step, "to_step": next_step},
+        )
+        db.commit()
+        db.refresh(protocol)
+    elif protocol.current_step == "review":
+        review_summary = build_review_summary(protocol)
+        if not review_summary.is_ready_for_review:
+            detail = build_full_validation_error_detail(protocol)
+            raise ProtocolValidationError(
+                str(detail["message"]),
+                field_errors=detail["field_errors"],  # type: ignore[arg-type]
+            )
+
+        protocol.state = "completed"
+        protocol.updated_at = datetime.utcnow()
+        db.add(protocol)
+        write_audit_log(
+            db,
+            entity_type="protocol",
+            entity_id=protocol.id,
+            action="protocol.completed",
+            actor_id=protocol.user_id,
+            details={"completed_from_step": protocol.current_step},
         )
         db.commit()
         db.refresh(protocol)
