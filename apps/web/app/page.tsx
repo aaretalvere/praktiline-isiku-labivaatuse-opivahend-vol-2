@@ -122,7 +122,7 @@ function ProtocolPreview({ protocol, liveValues }: { protocol: ProtocolResponse 
             Lisa 56 ametliku vormi järgi koostatud töövaade.
           </p>
         </div>
-        <span style={previewBadgeStyle}>mustand</span>
+        <span style={previewBadgeStyle}>{protocol?.state === "completed" ? "lõpetatud" : "mustand"}</span>
       </div>
 
       <article style={documentPreviewStyle}>
@@ -278,7 +278,7 @@ export default function HomePage() {
   }
 
   async function handleSaveStep() {
-    if (!protocol) {
+    if (!protocol || protocol.state === "completed") {
       return;
     }
     await withBusyState("save", async () => {
@@ -293,7 +293,7 @@ export default function HomePage() {
   }
 
   async function handleNextStep() {
-    if (!protocol) {
+    if (!protocol || protocol.state === "completed") {
       return;
     }
     await withBusyState("next", async () => {
@@ -310,7 +310,7 @@ export default function HomePage() {
   }
 
   async function handlePreviousStep() {
-    if (!protocol) {
+    if (!protocol || protocol.state === "completed") {
       return;
     }
     await withBusyState("previous", async () => {
@@ -321,6 +321,8 @@ export default function HomePage() {
   }
 
   const currentStep = protocol?.current_step_definition;
+  const isReviewStep = protocol?.current_step === "review";
+  const isCompleted = protocol?.state === "completed";
 
   return (
     <main
@@ -516,14 +518,22 @@ export default function HomePage() {
                 </div>
 
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <button type="button" onClick={handlePreviousStep} disabled={busyAction !== null} style={secondaryButtonStyle}>
+                  <button type="button" onClick={handlePreviousStep} disabled={busyAction !== null || isCompleted} style={secondaryButtonStyle}>
                     {busyAction === "previous" ? "Liigun tagasi..." : "Eelmine samm"}
                   </button>
-                  <button type="button" onClick={handleSaveStep} disabled={busyAction !== null} style={secondaryButtonStyle}>
+                  <button type="button" onClick={handleSaveStep} disabled={busyAction !== null || isCompleted} style={secondaryButtonStyle}>
                     {busyAction === "save" ? "Salvestan..." : "Salvesta samm"}
                   </button>
-                  <button type="button" onClick={handleNextStep} disabled={busyAction !== null} style={primaryButtonStyle}>
-                    {busyAction === "next" ? "Liigun edasi..." : "Järgmine samm"}
+                  <button type="button" onClick={handleNextStep} disabled={busyAction !== null || isCompleted} style={primaryButtonStyle}>
+                    {isCompleted
+                      ? "Protokoll lõpetatud"
+                      : busyAction === "next"
+                        ? isReviewStep
+                          ? "Lõpetan protokolli..."
+                          : "Liigun edasi..."
+                        : isReviewStep
+                          ? "Lõpeta protokoll"
+                          : "Järgmine samm"}
                   </button>
                 </div>
 
