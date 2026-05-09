@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ChangeEvent, CSSProperties, FormEvent } from "react";
+import type { ChangeEvent, CSSProperties, FormEvent, ReactNode } from "react";
 
 import {
   ApiError,
@@ -17,9 +17,11 @@ import type { ModuleManifest, ProtocolResponse } from "../lib/api";
 const defaultUserId = "demo-user-1";
 const defaultModelId = "demo-model-1";
 
+type ProtocolPayload = Record<string, Record<string, string>>;
+
 const cardStyle: CSSProperties = {
   border: "1px solid #d8dee9",
-  borderRadius: 16,
+  borderRadius: 8,
   padding: 20,
   background: "#ffffff",
   boxShadow: "0 12px 40px rgba(15, 23, 42, 0.08)",
@@ -28,7 +30,7 @@ const cardStyle: CSSProperties = {
 const inputStyle: CSSProperties = {
   width: "100%",
   padding: "10px 12px",
-  borderRadius: 10,
+  borderRadius: 8,
   border: "1px solid #cbd5e1",
   marginTop: 6,
 };
@@ -48,6 +50,141 @@ function getPlaceholder(fieldType: string) {
     return "tt:mm";
   }
   return undefined;
+}
+
+function getStepValue(
+  payload: ProtocolPayload,
+  stepKey: string,
+  fieldKey: string,
+  fallback = "",
+) {
+  const value = payload[stepKey]?.[fieldKey];
+  return value?.trim() ? value : fallback;
+}
+
+function PreviewValue({ children }: { children: ReactNode }) {
+  const isEmpty = children === "" || children === null || children === undefined;
+  return (
+    <span style={isEmpty ? emptyPreviewValueStyle : undefined}>
+      {isEmpty ? "täitmata" : children}
+    </span>
+  );
+}
+
+function PreviewLine({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <p style={previewLineStyle}>
+      <strong>{label}</strong> <PreviewValue>{children}</PreviewValue>
+    </p>
+  );
+}
+
+function ProtocolPreview({ protocol, liveValues }: { protocol: ProtocolResponse | null; liveValues: Record<string, string> }) {
+  const payload: ProtocolPayload = protocol
+    ? {
+        ...protocol.payload,
+        [protocol.current_step]: liveValues,
+      }
+    : {};
+
+  const location = getStepValue(payload, "protocol_meta", "location");
+  const actionDate = getStepValue(payload, "protocol_meta", "action_date");
+  const actionTime = getStepValue(payload, "protocol_meta", "action_time");
+  const officerRole = getStepValue(payload, "author", "officer_role");
+  const officerName = getStepValue(payload, "author", "officer_name");
+  const personName = getStepValue(payload, "person", "person_name");
+  const personIdCode = getStepValue(payload, "person", "person_id_code");
+  const birthDate = getStepValue(payload, "person", "birth_date");
+
+  return (
+    <section style={{ ...cardStyle, minHeight: 640 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "start" }}>
+        <div>
+          <h2 style={{ marginTop: 0, marginBottom: 6 }}>Protokolli eelvaade</h2>
+          <p style={{ margin: 0, color: "#64748b", lineHeight: 1.5 }}>
+            Lisa 56 ametliku vormi järgi koostatud töövaade.
+          </p>
+        </div>
+        <span style={previewBadgeStyle}>mustand</span>
+      </div>
+
+      <article style={documentPreviewStyle}>
+        <div style={{ borderBottom: "1px solid #cbd5e1", paddingBottom: 12, marginBottom: 18 }}>
+          <p style={{ ...previewLineStyle, textTransform: "uppercase", letterSpacing: 0.8 }}>
+            Asutusesiseseks kasutamiseks
+          </p>
+          <PreviewLine label="Märge tehtud:">jpp algus</PreviewLine>
+          <PreviewLine label="Juurdepääsupiirang kehtib kuni:">kehtib kuni</PreviewLine>
+          <PreviewLine label="Alus:">AvTS § 35 lg 1 p 1, 12</PreviewLine>
+          <PreviewLine label="Teabevaldaja:">MENETLEJA</PreviewLine>
+        </div>
+
+        <h3 style={documentTitleStyle}>Isiku läbivaatuse protokoll</h3>
+        <PreviewLine label="kriminaalasjas nr">{getStepValue(payload, "protocol_meta", "case_number")}</PreviewLine>
+        <p style={previewLineStyle}>
+          <PreviewValue>{actionDate}</PreviewValue>{", "}<PreviewValue>{location}</PreviewValue>
+        </p>
+        <PreviewLine label="Uurimistoimingu algus:">{actionTime ? `kell ${actionTime}` : ""}</PreviewLine>
+
+        <p style={previewParagraphStyle}>
+          <PreviewValue>{[officerRole, officerName].filter(Boolean).join(" ")}</PreviewValue>
+          {" juhindudes KrMS §dest 83, 88 ja 146, teostas isiku läbivaatuse:"}
+        </p>
+
+        <PreviewLine label="Isiku nimi:">
+          {[personName, personIdCode, birthDate].filter(Boolean).join(", ")}
+        </PreviewLine>
+        <PreviewLine label="Uurimistoimingus osaleb:">
+          {getStepValue(payload, "participants", "participants_present")}
+        </PreviewLine>
+        <PreviewLine label="Uurimistoimingus osaleb tõlk">
+          {getStepValue(payload, "translator", "translator_used")}
+        </PreviewLine>
+        <div style={signatureLineStyle}>________________________</div>
+        <p style={{ ...previewLineStyle, textAlign: "center" }}>(tõlgi allkiri)</p>
+
+        <PreviewLine label="Kasutatud tehnikavahendid:">
+          {getStepValue(payload, "tools", "tools_used")}
+        </PreviewLine>
+
+        <h4 style={sectionTitleStyle}>Läbivaatusega tuvastati:</h4>
+        <PreviewLine label="Kuriteojälgede kirjeldus:">
+          {getStepValue(payload, "crime_traces", "crime_traces_found")}
+        </PreviewLine>
+        <PreviewLine label="Eritunnuste kirjeldus:">
+          {getStepValue(payload, "special_features", "special_features")}
+        </PreviewLine>
+        <PreviewLine label="Avastatud objektid:">
+          {getStepValue(payload, "objects", "objects_found")}
+        </PreviewLine>
+        <PreviewLine label="Märkused protokolli kohta:">
+          {getStepValue(payload, "notes", "notes")}
+        </PreviewLine>
+        <PreviewLine label="Protokolli lisad:">
+          {getStepValue(payload, "attachments", "attachments")}
+        </PreviewLine>
+
+        <p style={previewParagraphStyle}>
+          Uurimistoimingus osalejaile (välja arvatud kahtlustatavale) on selgitatud, et vastavalt KrMS § 214 võib kohtueelse menetluse andmeid avaldada üksnes prokuratuuri loal ja tema määratud ulatuses.
+        </p>
+        <p style={previewParagraphStyle}>
+          Kaitsja on kohustatud hoidma saladuses talle kriminaalmenetluse käigus õigusabi andmisel teatavaks saanud andmeid.
+        </p>
+
+        <PreviewLine label="Uurimistoimingu lõpp:">{getStepValue(payload, "protocol_meta", "end_time")}</PreviewLine>
+        <div style={signaturesGridStyle}>
+          <span>koostaja nimi</span>
+          <span>tõlgi nimi</span>
+          <span>läbivaadatud isiku nimi</span>
+          <span>kohtuarsti nimi</span>
+        </div>
+        <p style={previewParagraphStyle}>
+          Uurimistoimingust osa võtnud menetlusseisund ja nimi keeldus protokollile alla kirjutamast, sest märgitakse keeldumise põhjus.
+        </p>
+        <PreviewLine label="Koostaja:">{officerName}</PreviewLine>
+      </article>
+    </section>
+  );
 }
 
 export default function HomePage() {
@@ -174,28 +311,26 @@ export default function HomePage() {
     <main
       style={{
         minHeight: "100vh",
-        background:
-          "linear-gradient(180deg, #eef6ff 0%, #f8fafc 45%, #ffffff 100%)",
+        background: "linear-gradient(180deg, #eef6ff 0%, #f8fafc 45%, #ffffff 100%)",
         color: "#0f172a",
         padding: "32px 20px 48px",
         fontFamily: "Segoe UI, sans-serif",
       }}
     >
-      <div style={{ maxWidth: 1120, margin: "0 auto", display: "grid", gap: 20 }}>
+      <div style={{ maxWidth: 1380, margin: "0 auto", display: "grid", gap: 20 }}>
         <section style={{ ...cardStyle, background: "#0f172a", color: "#f8fafc" }}>
           <p style={{ margin: 0, opacity: 0.75, letterSpacing: 1.2, textTransform: "uppercase" }}>
-            Praktiline oppelahendus
+            Praktiline õppelahendus
           </p>
           <h1 style={{ margin: "10px 0 8px", fontSize: 38 }}>
-            Isiku labivaatuse protokolli esimene toovoog
+            Isiku läbivaatuse protokolli esimene töövoog
           </h1>
           <p style={{ margin: 0, maxWidth: 760, lineHeight: 1.6, color: "#cbd5e1" }}>
-            See vaade lubab luua protokolli, taisita sammud, liikuda workflow&apos;s
-            edasi-tagasi ja vaadata ule, milline kohustuslik info on veel puudu.
+            See vaade lubab luua protokolli, täita sammud, liikuda töövoos edasi-tagasi ja vaadata üle, kuidas sisestatud andmed ametliku vormi loogikas paiknevad.
           </p>
         </section>
 
-        <section style={{ display: "grid", gap: 20, gridTemplateColumns: "1.1fr 1.4fr" }}>
+        <section style={{ display: "grid", gap: 20, gridTemplateColumns: "minmax(300px, 0.75fr) minmax(420px, 1fr) minmax(460px, 1.1fr)", alignItems: "start" }}>
           <div style={{ display: "grid", gap: 20 }}>
             <section style={cardStyle}>
               <h2 style={{ marginTop: 0 }}>Keskkonna seis</h2>
@@ -241,37 +376,30 @@ export default function HomePage() {
                   />
                 </label>
 
-                <button
-                  type="submit"
-                  disabled={busyAction !== null}
-                  style={primaryButtonStyle}
-                >
+                <button type="submit" disabled={busyAction !== null} style={primaryButtonStyle}>
                   {busyAction === "create" ? "Loon protokolli..." : "Loo protokoll"}
                 </button>
               </form>
             </section>
 
             <section style={cardStyle}>
-              <h2 style={{ marginTop: 0 }}>Review kokkuvote</h2>
+              <h2 style={{ marginTop: 0 }}>Review kokkuvõte</h2>
               {!protocol?.review_summary ? (
-                <p style={{ margin: 0 }}>Kokkuvote ilmub parast protokolli loomist.</p>
+                <p style={{ margin: 0 }}>Kokkuvõte ilmub pärast protokolli loomist.</p>
               ) : (
                 <div style={{ display: "grid", gap: 10 }}>
                   <p style={{ margin: 0 }}>
                     Valmis review&apos;ks:{" "}
-                    <strong>
-                      {protocol.review_summary.is_ready_for_review ? "jah" : "veel mitte"}
-                    </strong>
+                    <strong>{protocol.review_summary.is_ready_for_review ? "jah" : "veel mitte"}</strong>
                   </p>
                   <p style={{ margin: 0 }}>
-                    Valmis samme: {protocol.review_summary.completed_steps}/
-                    {protocol.review_summary.total_steps}
+                    Valmis samme: {protocol.review_summary.completed_steps}/{protocol.review_summary.total_steps}
                   </p>
                   {protocol.review_summary.missing_by_step.map((stepSummary) => (
                     <div
                       key={stepSummary.step_key}
                       style={{
-                        borderRadius: 12,
+                        borderRadius: 8,
                         padding: 12,
                         background: stepSummary.is_complete ? "#ecfdf5" : "#fff7ed",
                       }}
@@ -279,14 +407,13 @@ export default function HomePage() {
                       <strong>{stepSummary.step_key}</strong>
                       <div style={{ marginTop: 4 }}>
                         {stepSummary.is_complete
-                          ? "Samm on taidetud."
+                          ? "Samm on täidetud."
                           : [
                               stepSummary.missing_fields.length
                                 ? `Puudub: ${stepSummary.missing_fields.join(", ")}`
                                 : null,
                               ...Object.entries(stepSummary.validation_errors).map(
-                                ([fieldKey, messages]) =>
-                                  `${fieldKey}: ${messages.join(" ")}`,
+                                ([fieldKey, messages]) => `${fieldKey}: ${messages.join(" ")}`,
                               ),
                             ]
                               .filter(Boolean)
@@ -303,18 +430,11 @@ export default function HomePage() {
             <h2 style={{ marginTop: 0 }}>Aktiivne protokoll</h2>
             {!protocol || !currentStep ? (
               <p style={{ margin: 0 }}>
-                Loo vasakul uus protokoll. Seejarel saad sammud labi teha otse siit vaatest.
+                Loo vasakul uus protokoll. Seejärel saad sammud läbi teha otse siit vaatest.
               </p>
             ) : (
               <div style={{ display: "grid", gap: 18 }}>
-                <div
-                  style={{
-                    borderRadius: 14,
-                    padding: 16,
-                    background: "#f8fafc",
-                    border: "1px solid #e2e8f0",
-                  }}
-                >
+                <div style={{ borderRadius: 8, padding: 16, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
                   <p style={{ margin: 0 }}>
                     <strong>Protokoll:</strong> {protocol.id}
                   </p>
@@ -333,39 +453,25 @@ export default function HomePage() {
 
                 <div style={{ display: "grid", gap: 14 }}>
                   {currentStep.fields.length === 0 ? (
-                    <div
-                      style={{
-                        borderRadius: 12,
-                        padding: 14,
-                        background: "#eff6ff",
-                        color: "#1d4ed8",
-                      }}
-                    >
-                      Sellel sammul ei ole eraldi valju. Kasuta review kokkuvotet ja liigu edasi
-                      voi tagasi.
+                    <div style={{ borderRadius: 8, padding: 14, background: "#eff6ff", color: "#1d4ed8" }}>
+                      Sellel sammul ei ole eraldi välju. Kasuta review kokkuvõtet ja liigu edasi või tagasi.
                     </div>
                   ) : (
                     currentStep.fields.map((field) => {
                       const commonProps = {
                         value: formValues[field.key] ?? "",
-                        onChange: (
-                          event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-                        ) =>
-                          {
-                            const nextValue = event.target.value;
-                            setFormValues((current) => ({
-                              ...current,
-                              [field.key]: nextValue,
-                            }));
-                            setFieldErrors((current) => {
-                              if (!(field.key in current)) {
-                                return current;
-                              }
-                              const nextErrors = { ...current };
-                              delete nextErrors[field.key];
-                              return nextErrors;
-                            });
-                          },
+                        onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                          const nextValue = event.target.value;
+                          setFormValues((current) => ({ ...current, [field.key]: nextValue }));
+                          setFieldErrors((current) => {
+                            if (!(field.key in current)) {
+                              return current;
+                            }
+                            const nextErrors = { ...current };
+                            delete nextErrors[field.key];
+                            return nextErrors;
+                          });
+                        },
                         style: {
                           ...inputStyle,
                           borderColor: fieldErrors[field.key] ? "#dc2626" : "#cbd5e1",
@@ -395,47 +501,27 @@ export default function HomePage() {
                 </div>
 
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <button
-                    type="button"
-                    onClick={handlePreviousStep}
-                    disabled={busyAction !== null}
-                    style={secondaryButtonStyle}
-                  >
+                  <button type="button" onClick={handlePreviousStep} disabled={busyAction !== null} style={secondaryButtonStyle}>
                     {busyAction === "previous" ? "Liigun tagasi..." : "Eelmine samm"}
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveStep}
-                    disabled={busyAction !== null}
-                    style={secondaryButtonStyle}
-                  >
+                  <button type="button" onClick={handleSaveStep} disabled={busyAction !== null} style={secondaryButtonStyle}>
                     {busyAction === "save" ? "Salvestan..." : "Salvesta samm"}
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleNextStep}
-                    disabled={busyAction !== null}
-                    style={primaryButtonStyle}
-                  >
-                    {busyAction === "next" ? "Liigun edasi..." : "Jargmine samm"}
+                  <button type="button" onClick={handleNextStep} disabled={busyAction !== null} style={primaryButtonStyle}>
+                    {busyAction === "next" ? "Liigun edasi..." : "Järgmine samm"}
                   </button>
                 </div>
 
                 {error ? (
-                  <div
-                    style={{
-                      borderRadius: 12,
-                      padding: 14,
-                      background: "#fef2f2",
-                      color: "#b91c1c",
-                    }}
-                  >
+                  <div style={{ borderRadius: 8, padding: 14, background: "#fef2f2", color: "#b91c1c" }}>
                     {error}
                   </div>
                 ) : null}
               </div>
             )}
           </section>
+
+          <ProtocolPreview protocol={protocol} liveValues={formValues} />
         </section>
       </div>
     </main>
@@ -444,7 +530,7 @@ export default function HomePage() {
 
 const primaryButtonStyle: CSSProperties = {
   border: 0,
-  borderRadius: 999,
+  borderRadius: 8,
   padding: "12px 18px",
   background: "#0f766e",
   color: "#ffffff",
@@ -456,4 +542,63 @@ const secondaryButtonStyle: CSSProperties = {
   ...primaryButtonStyle,
   background: "#e2e8f0",
   color: "#0f172a",
+};
+
+const previewBadgeStyle: CSSProperties = {
+  borderRadius: 8,
+  border: "1px solid #cbd5e1",
+  padding: "4px 8px",
+  color: "#475569",
+  fontSize: 13,
+  textTransform: "uppercase",
+};
+
+const documentPreviewStyle: CSSProperties = {
+  marginTop: 18,
+  padding: 22,
+  border: "1px solid #cbd5e1",
+  borderRadius: 8,
+  background: "#fffdf7",
+  color: "#111827",
+  fontFamily: "Georgia, 'Times New Roman', serif",
+  lineHeight: 1.55,
+};
+
+const documentTitleStyle: CSSProperties = {
+  margin: "0 0 14px",
+  textAlign: "center",
+  fontSize: 22,
+};
+
+const sectionTitleStyle: CSSProperties = {
+  margin: "20px 0 8px",
+  fontSize: 16,
+};
+
+const previewLineStyle: CSSProperties = {
+  margin: "0 0 8px",
+};
+
+const previewParagraphStyle: CSSProperties = {
+  margin: "14px 0",
+};
+
+const emptyPreviewValueStyle: CSSProperties = {
+  color: "#94a3b8",
+  fontStyle: "italic",
+};
+
+const signatureLineStyle: CSSProperties = {
+  margin: "16px auto 4px",
+  maxWidth: 220,
+  textAlign: "center",
+};
+
+const signaturesGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: 8,
+  margin: "18px 0",
+  color: "#475569",
+  fontSize: 14,
 };
