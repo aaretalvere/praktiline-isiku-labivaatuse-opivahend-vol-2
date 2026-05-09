@@ -39,6 +39,12 @@
       "description": "Sisesta uurimistoimingu tegemise aeg ja koht.",
       "fields": [
         {
+          "key": "case_number",
+          "label": "Kriminaalasja number",
+          "type": "text",
+          "required": true
+        },
+        {
           "key": "location",
           "label": "Labivaatuse koht",
           "type": "text",
@@ -53,9 +59,15 @@
         },
         {
           "key": "action_time",
-          "label": "Uurimistoimingu kellaaeg",
+          "label": "Uurimistoimingu alguskellaaeg",
           "type": "text",
           "required": true
+        },
+        {
+          "key": "end_time",
+          "label": "Uurimistoimingu loppkellaaeg",
+          "type": "text",
+          "required": false
         }
       ]
     },
@@ -84,6 +96,12 @@
       "description": "Sisesta labi vaadatud isiku pohiandmed.",
       "fields": [
         {
+          "key": "procedure_status",
+          "label": "Menetlusseisund",
+          "type": "text",
+          "required": true
+        },
+        {
           "key": "person_name",
           "label": "Isiku nimi",
           "type": "text",
@@ -101,6 +119,12 @@
           "type": "text",
           "required": true,
           "validation_rules": ["not_in_future_date"]
+        },
+        {
+          "key": "identity_verification_basis",
+          "label": "Isikusamasuse tuvastamise alus",
+          "type": "text",
+          "required": true
         }
       ]
     },
