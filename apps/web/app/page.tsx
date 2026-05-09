@@ -186,7 +186,7 @@ function ProtocolPreview({ protocol, liveValues }: { protocol: ProtocolResponse 
           Kaitsja on kohustatud hoidma saladuses talle kriminaalmenetluse käigus õigusabi andmisel teatavaks saanud andmeid.
         </p>
 
-        <PreviewLine label="Uurimistoimingu lõpp:">{getStepValue(payload, "protocol_meta", "end_time")}</PreviewLine>
+        <PreviewLine label="Uurimistoimingu lõpp:">{getStepValue(payload, "completion", "end_time")}</PreviewLine>
         <div style={signaturesGridStyle}>
           <span>koostaja nimi</span>
           <span>tõlgi nimi</span>
