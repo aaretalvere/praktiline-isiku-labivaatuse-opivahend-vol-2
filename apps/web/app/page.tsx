@@ -92,9 +92,26 @@ function ProtocolPreview({ protocol, liveValues }: { protocol: ProtocolResponse 
   const actionTime = getStepValue(payload, "protocol_meta", "action_time");
   const officerRole = getStepValue(payload, "author", "officer_role");
   const officerName = getStepValue(payload, "author", "officer_name");
+  const procedureStatus = getStepValue(payload, "person", "procedure_status");
   const personName = getStepValue(payload, "person", "person_name");
   const personIdCode = getStepValue(payload, "person", "person_id_code");
   const birthDate = getStepValue(payload, "person", "birth_date");
+  const identityVerificationBasis = getStepValue(
+    payload,
+    "person",
+    "identity_verification_basis",
+  );
+  const personIdentityText = [
+    procedureStatus ? `menetlusseisund: ${procedureStatus}` : "",
+    personName ? `nimi: ${personName}` : "",
+    personIdCode ? `isikukood või sünniaeg: ${personIdCode}` : "",
+    birthDate ? `sünniaeg: ${birthDate}` : "",
+    identityVerificationBasis
+      ? `isikusamasus tuvastatud: ${identityVerificationBasis}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("; ");
 
   return (
     <section style={{ ...cardStyle, minHeight: 640 }}>
@@ -131,9 +148,7 @@ function ProtocolPreview({ protocol, liveValues }: { protocol: ProtocolResponse 
           {" juhindudes KrMS §dest 83, 88 ja 146, teostas isiku läbivaatuse:"}
         </p>
 
-        <PreviewLine label="Isiku nimi:">
-          {[personName, personIdCode, birthDate].filter(Boolean).join(", ")}
-        </PreviewLine>
+        <PreviewLine label="Isiku nimi:">{personIdentityText}</PreviewLine>
         <PreviewLine label="Uurimistoimingus osaleb:">
           {getStepValue(payload, "participants", "participants_present")}
         </PreviewLine>
