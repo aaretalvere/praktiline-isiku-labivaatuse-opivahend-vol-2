@@ -74,7 +74,7 @@
     {
       "key": "author",
       "title": "Koostaja",
-      "description": "Sisesta protokolli koostaja andmed.",
+      "description": "Sisesta ametniku ametikoht struktuuriuksuse tapsusega ja nimi. See on vajalik, et uurimistoimingu teinud ametnik oleks protokollis uheselt tuvastatav.",
       "fields": [
         {
           "key": "officer_name",
@@ -84,7 +84,7 @@
         },
         {
           "key": "officer_role",
-          "label": "Ametikoht",
+          "label": "Ametikoht ja struktuuriuksus",
           "type": "text",
           "required": true
         }
