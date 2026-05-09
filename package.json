@@ -3,7 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "dev:web": "npm --prefix apps/web run dev",
-    "lint:web": "npm --prefix apps/web run lint"
+    "db": "docker compose -f infra/docker-compose.yml up -d",
+    "dev": "pnpm db && concurrently -n api,web -c blue,green \"pnpm dev:api\" \"pnpm dev:web\"",
+    "dev:api": "cd apps/api && cross-env PYTHONPATH=. uvicorn src.main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:web": "pnpm --dir apps/web dev",
+    "lint:web": "pnpm --dir apps/web lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0"
   }
 }
