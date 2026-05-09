@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15
+    container_name: opivahend-db
+    environment:
+      POSTGRES_USER: opivahend
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: opivahend
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:

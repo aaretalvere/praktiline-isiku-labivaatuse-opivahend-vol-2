@@ -1,0 +1,218 @@
+{
+  "id": "isiku-labivaatus",
+  "name": "Isiku labivaatuse protokoll",
+  "version": "1.1.0",
+  "description": "Esimene oppemoodul suuteomenetluses toendi kogumise oppimiseks.",
+  "protocol_template": "riigiprokuratuur_lisa_56",
+  "steps": [
+    "model_selection",
+    "protocol_meta",
+    "author",
+    "person",
+    "participants",
+    "translator",
+    "tools",
+    "crime_traces",
+    "special_features",
+    "objects",
+    "notes",
+    "attachments",
+    "review"
+  ],
+  "step_definitions": [
+    {
+      "key": "model_selection",
+      "title": "Mudeli valik",
+      "description": "Vali 3D mudel, mille alusel protokolli taitma hakkad.",
+      "fields": [
+        {
+          "key": "model_id",
+          "label": "Mudeli ID",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "protocol_meta",
+      "title": "Protokolli andmed",
+      "description": "Sisesta uurimistoimingu tegemise aeg ja koht.",
+      "fields": [
+        {
+          "key": "location",
+          "label": "Labivaatuse koht",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "action_date",
+          "label": "Uurimistoimingu kuupaev",
+          "type": "text",
+          "required": true,
+          "validation_rules": ["not_in_future_date"]
+        },
+        {
+          "key": "action_time",
+          "label": "Uurimistoimingu kellaaeg",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "author",
+      "title": "Koostaja",
+      "description": "Sisesta protokolli koostaja andmed.",
+      "fields": [
+        {
+          "key": "officer_name",
+          "label": "Ametniku nimi",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "officer_role",
+          "label": "Ametikoht",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "person",
+      "title": "Labi vaadatud isik",
+      "description": "Sisesta labi vaadatud isiku pohiandmed.",
+      "fields": [
+        {
+          "key": "person_name",
+          "label": "Isiku nimi",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "person_id_code",
+          "label": "Isikukood voi sunniaeg",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "birth_date",
+          "label": "Sunniaeg",
+          "type": "text",
+          "required": true,
+          "validation_rules": ["not_in_future_date"]
+        }
+      ]
+    },
+    {
+      "key": "participants",
+      "title": "Osalejad",
+      "description": "Margi juures viibinud tunnistajad voi muud osalejad.",
+      "fields": [
+        {
+          "key": "participants_present",
+          "label": "Osalejad",
+          "type": "textarea",
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "translator",
+      "title": "Tolk",
+      "description": "Taidetakse ainult vajadusel.",
+      "fields": [
+        {
+          "key": "translator_used",
+          "label": "Tolk",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "tools",
+      "title": "Kasutatud vahendid",
+      "description": "Kirjelda labiotsimisel kasutatud vahendeid.",
+      "fields": [
+        {
+          "key": "tools_used",
+          "label": "Vahendid",
+          "type": "textarea",
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "crime_traces",
+      "title": "Kuriteo jaljed",
+      "description": "Kirjelda avastatud jalgesid voi tunnuseid.",
+      "fields": [
+        {
+          "key": "crime_traces_found",
+          "label": "Leitud jaljed voi tunnused",
+          "type": "textarea",
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "special_features",
+      "title": "Eritunnused",
+      "description": "Kirjelda valiseid eritunnuseid.",
+      "fields": [
+        {
+          "key": "special_features",
+          "label": "Eritunnused",
+          "type": "textarea",
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "objects",
+      "title": "Leitud esemed",
+      "description": "Kirjelda labiotsimisel leitud esemeid.",
+      "fields": [
+        {
+          "key": "objects_found",
+          "label": "Leitud esemed",
+          "type": "textarea",
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "notes",
+      "title": "Markused",
+      "description": "Lisa markused ja taiendav info.",
+      "fields": [
+        {
+          "key": "notes",
+          "label": "Markused",
+          "type": "textarea",
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "attachments",
+      "title": "Lisad",
+      "description": "Kirjelda lisatud faile voi toendeid.",
+      "fields": [
+        {
+          "key": "attachments",
+          "label": "Lisad",
+          "type": "textarea",
+          "required": false
+        }
+      ]
+    },
+    {
+      "key": "review",
+      "title": "Ulevaade",
+      "description": "Kontrolli enne esitamist, et kohustuslik info oleks olemas.",
+      "fields": []
+    }
+  ]
+}
