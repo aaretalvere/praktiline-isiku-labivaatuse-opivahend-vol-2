@@ -17,6 +17,7 @@
     "objects",
     "notes",
     "attachments",
+    "completion",
     "review"
   ],
   "step_definitions": [
@@ -36,7 +37,7 @@
     {
       "key": "protocol_meta",
       "title": "Protokolli andmed",
-      "description": "Sisesta uurimistoimingu tegemise aeg ja koht.",
+      "description": "Sisesta uurimistoimingu algusandmed: kriminaalasja number, koht, kuupaev ja alguskellaaeg.",
       "fields": [
         {
           "key": "case_number",
@@ -62,12 +63,6 @@
           "label": "Uurimistoimingu alguskellaaeg",
           "type": "text",
           "required": true
-        },
-        {
-          "key": "end_time",
-          "label": "Uurimistoimingu loppkellaaeg",
-          "type": "text",
-          "required": false
         }
       ]
     },
@@ -229,6 +224,19 @@
           "label": "Lisad",
           "type": "textarea",
           "required": false
+        }
+      ]
+    },
+    {
+      "key": "completion",
+      "title": "Toimingu lopetamine",
+      "description": "Taita see samm siis, kui uurimistoiming on sisuliselt labi viidud ja tegelik loppkellaaeg on teada.",
+      "fields": [
+        {
+          "key": "end_time",
+          "label": "Uurimistoimingu loppkellaaeg",
+          "type": "text",
+          "required": true
         }
       ]
     },
